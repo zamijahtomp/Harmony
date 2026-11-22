@@ -14,6 +14,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
@@ -28,6 +29,7 @@ class LibraryActivity : AppCompatActivity() {
 
     private val allSongs = mutableListOf<Song>()
     private val displayedSongs = mutableListOf<Song>()
+    private val activeQueue = mutableListOf<Song>()
     private lateinit var songAdapter: SongAdapter
 
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -37,15 +39,19 @@ class LibraryActivity : AppCompatActivity() {
     private lateinit var miniSongTitle: TextView
     private lateinit var miniSongArtist: TextView
     private lateinit var playPauseButton: Button
+    private lateinit var searchInput: EditText
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             playPauseButton.text = if (isPlaying) "Pause" else "Play"
         }
 
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            if (playbackState == Player.STATE_ENDED) {
-                playNextSong()
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            val controller = mediaController ?: return
+            val index = controller.currentMediaItemIndex
+            if (index in activeQueue.indices) {
+                currentIndex = index
+                updateMiniPlayerUI(activeQueue[index])
             }
         }
     }
@@ -68,14 +74,22 @@ class LibraryActivity : AppCompatActivity() {
         playPauseButton = findViewById(R.id.playPauseButton)
         val prevButton = findViewById<Button>(R.id.prevButton)
         val nextButton = findViewById<Button>(R.id.nextButton)
-        val searchInput = findViewById<EditText>(R.id.searchInput)
+        val queueButton = findViewById<Button>(R.id.queueButton)
+        searchInput = findViewById(R.id.searchInput)
 
         val recyclerView = findViewById<RecyclerView>(R.id.songsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         songAdapter = SongAdapter(displayedSongs) { selectedSong ->
-            val indexInAll = allSongs.indexOfFirst { it.id == selectedSong.id }
-            if (indexInAll != -1) {
-                playSongAt(indexInAll)
+            val isSearching = searchInput.text.toString().trim().isNotEmpty()
+            if (isSearching) {
+                // Searched song: start a queue with ONLY this song
+                startQueue(listOf(selectedSong), startIndex = 0)
+            } else {
+                // Browsing full list: start queue from this song and continue through the library
+                val indexInAll = allSongs.indexOfFirst { it.id == selectedSong.id }
+                if (indexInAll != -1) {
+                    startQueue(allSongs, startIndex = indexInAll)
+                }
             }
         }
         recyclerView.adapter = songAdapter
@@ -92,8 +106,8 @@ class LibraryActivity : AppCompatActivity() {
 
         playPauseButton.setOnClickListener {
             val controller = mediaController ?: return@setOnClickListener
-            if (currentIndex == -1 && allSongs.isNotEmpty()) {
-                playSongAt(0)
+            if (activeQueue.isEmpty() && allSongs.isNotEmpty()) {
+                startQueue(allSongs, startIndex = 0)
             } else if (controller.isPlaying) {
                 controller.pause()
             } else {
@@ -101,8 +115,17 @@ class LibraryActivity : AppCompatActivity() {
             }
         }
 
-        prevButton.setOnClickListener { playPreviousSong() }
-        nextButton.setOnClickListener { playNextSong() }
+        prevButton.setOnClickListener {
+            mediaController?.seekToPrevious()
+        }
+
+        nextButton.setOnClickListener {
+            mediaController?.seekToNext()
+        }
+
+        queueButton.setOnClickListener {
+            showQueueDialog()
+        }
 
         checkAudioPermission()
     }
@@ -117,6 +140,10 @@ class LibraryActivity : AppCompatActivity() {
             controller?.addListener(playerListener)
             controller?.let {
                 playPauseButton.text = if (it.isPlaying) "Pause" else "Play"
+                if (it.currentMediaItemIndex in activeQueue.indices) {
+                    currentIndex = it.currentMediaItemIndex
+                    updateMiniPlayerUI(activeQueue[currentIndex])
+                }
             }
         }, ContextCompat.getMainExecutor(this))
     }
@@ -126,6 +153,81 @@ class LibraryActivity : AppCompatActivity() {
         mediaController?.removeListener(playerListener)
         controllerFuture?.let { MediaController.releaseFuture(it) }
         mediaController = null
+    }
+
+    private fun startQueue(songs: List<Song>, startIndex: Int) {
+        if (songs.isEmpty() || startIndex !in songs.indices) return
+        activeQueue.clear()
+        activeQueue.addAll(songs)
+        currentIndex = startIndex
+
+        val song = activeQueue[startIndex]
+        updateMiniPlayerUI(song)
+
+        val controller = mediaController ?: return
+        val mediaItems = activeQueue.map { MediaItem.fromUri(it.uri) }
+        controller.setMediaItems(mediaItems, startIndex, 0L)
+        controller.prepare()
+        controller.play()
+    }
+
+    private fun addSongToQueue(song: Song) {
+        activeQueue.add(song)
+        mediaController?.addMediaItem(MediaItem.fromUri(song.uri))
+        Toast.makeText(this, "Added \"${song.title}\" to queue", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateMiniPlayerUI(song: Song) {
+        miniSongTitle.text = song.title
+        miniSongArtist.text = song.artist
+    }
+
+    private fun showQueueDialog() {
+        val labels = if (activeQueue.isEmpty()) {
+            emptyArray()
+        } else {
+            activeQueue.mapIndexed { idx, song ->
+                val prefix = if (idx == currentIndex) "▶ " else "${idx + 1}. "
+                "$prefix${song.title} — ${song.artist}"
+            }.toTypedArray()
+        }
+
+        val builder = AlertDialog.Builder(this)
+            .setTitle("Current Queue (${activeQueue.size})")
+
+        if (labels.isNotEmpty()) {
+            builder.setItems(labels) { _, which ->
+                currentIndex = which
+                val selected = activeQueue[which]
+                updateMiniPlayerUI(selected)
+                mediaController?.seekTo(which, 0L)
+                mediaController?.play()
+            }
+        } else {
+            builder.setMessage("Your queue is empty. Tap Add Song to queue a track.")
+        }
+
+        builder
+            .setPositiveButton("Add Song") { _, _ -> showAddSongToQueueDialog() }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun showAddSongToQueueDialog() {
+        if (allSongs.isEmpty()) {
+            Toast.makeText(this, "No songs available to add", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val songChoices = allSongs.map { "${it.title} — ${it.artist}" }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Add Song to Queue")
+            .setItems(songChoices) { _, which ->
+                addSongToQueue(allSongs[which])
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun filterSongs(query: String) {
@@ -141,32 +243,6 @@ class LibraryActivity : AppCompatActivity() {
         displayedSongs.clear()
         displayedSongs.addAll(matches)
         songAdapter.updateSongs(displayedSongs)
-    }
-
-    private fun playSongAt(index: Int) {
-        if (allSongs.isEmpty() || index !in allSongs.indices) return
-        currentIndex = index
-        val song = allSongs[index]
-
-        miniSongTitle.text = song.title
-        miniSongArtist.text = song.artist
-
-        val controller = mediaController ?: return
-        controller.setMediaItem(MediaItem.fromUri(song.uri))
-        controller.prepare()
-        controller.play()
-    }
-
-    private fun playNextSong() {
-        if (allSongs.isEmpty()) return
-        val nextIndex = if (currentIndex + 1 < allSongs.size) currentIndex + 1 else 0
-        playSongAt(nextIndex)
-    }
-
-    private fun playPreviousSong() {
-        if (allSongs.isEmpty()) return
-        val prevIndex = if (currentIndex - 1 >= 0) currentIndex - 1 else allSongs.lastIndex
-        playSongAt(prevIndex)
     }
 
     private fun checkAudioPermission() {
