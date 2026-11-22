@@ -1,6 +1,7 @@
 package com.example.harmony
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.ContentUris
 import android.content.pm.PackageManager
 import android.os.Build
@@ -17,16 +18,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.common.util.concurrent.ListenableFuture
 
 class LibraryActivity : AppCompatActivity() {
 
     private val allSongs = mutableListOf<Song>()
     private val displayedSongs = mutableListOf<Song>()
     private lateinit var songAdapter: SongAdapter
-    private var player: ExoPlayer? = null
+
+    private var controllerFuture: ListenableFuture<MediaController>? = null
+    private var mediaController: MediaController? = null
     private var currentIndex = -1
 
     private lateinit var miniSongTitle: TextView
@@ -65,10 +70,6 @@ class LibraryActivity : AppCompatActivity() {
         val nextButton = findViewById<Button>(R.id.nextButton)
         val searchInput = findViewById<EditText>(R.id.searchInput)
 
-        player = ExoPlayer.Builder(this).build().apply {
-            addListener(playerListener)
-        }
-
         val recyclerView = findViewById<RecyclerView>(R.id.songsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         songAdapter = SongAdapter(displayedSongs) { selectedSong ->
@@ -90,13 +91,13 @@ class LibraryActivity : AppCompatActivity() {
         })
 
         playPauseButton.setOnClickListener {
-            val exoPlayer = player ?: return@setOnClickListener
+            val controller = mediaController ?: return@setOnClickListener
             if (currentIndex == -1 && allSongs.isNotEmpty()) {
                 playSongAt(0)
-            } else if (exoPlayer.isPlaying) {
-                exoPlayer.pause()
+            } else if (controller.isPlaying) {
+                controller.pause()
             } else {
-                exoPlayer.play()
+                controller.play()
             }
         }
 
@@ -104,6 +105,27 @@ class LibraryActivity : AppCompatActivity() {
         nextButton.setOnClickListener { playNextSong() }
 
         checkAudioPermission()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
+        controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
+        controllerFuture?.addListener({
+            val controller = controllerFuture?.get()
+            mediaController = controller
+            controller?.addListener(playerListener)
+            controller?.let {
+                playPauseButton.text = if (it.isPlaying) "Pause" else "Play"
+            }
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mediaController?.removeListener(playerListener)
+        controllerFuture?.let { MediaController.releaseFuture(it) }
+        mediaController = null
     }
 
     private fun filterSongs(query: String) {
@@ -129,10 +151,10 @@ class LibraryActivity : AppCompatActivity() {
         miniSongTitle.text = song.title
         miniSongArtist.text = song.artist
 
-        val exoPlayer = player ?: return
-        exoPlayer.setMediaItem(MediaItem.fromUri(song.uri))
-        exoPlayer.prepare()
-        exoPlayer.play()
+        val controller = mediaController ?: return
+        controller.setMediaItem(MediaItem.fromUri(song.uri))
+        controller.prepare()
+        controller.play()
     }
 
     private fun playNextSong() {
@@ -201,12 +223,5 @@ class LibraryActivity : AppCompatActivity() {
 
         displayedSongs.addAll(allSongs)
         songAdapter.updateSongs(displayedSongs)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        player?.removeListener(playerListener)
-        player?.release()
-        player = null
     }
 }
