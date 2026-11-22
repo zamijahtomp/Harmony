@@ -1,7 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.Harmony" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="harmonyScreenBackground">@drawable/bg_night_gradient</item>
+        <item name="harmonyMiniPlayerBackground">@drawable/bg_mini_player_pill</item>
+        <item name="harmonySearchBackground">@drawable/bg_search_pill</item>
+        <item name="harmonyControlBackground">@drawable/bg_control_pill</item>
+        <item name="harmonyTextPrimary">#FFFFFF</item>
+        <item name="harmonyTextSecondary">#C9BFE0</item>
+        <item name="harmonyHintText">#9A8EB8</item>
     </style>
 </resources>

@@ -1,10 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.Harmony" parent="Theme.Material3.DayNight.NoActionBar"> <!--removes app bar-->
+    <style name="Base.Theme.Harmony" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-         <item name="colorPrimary">@color/spotify_green</item>
+        <item name="colorPrimary">@color/spotify_green</item>
         <item name="colorSecondary">@color/spotify_black_dark</item>
         <item name="colorSecondaryVariant">@color/spotify_black_light</item>
+
+        <!-- Sunset gradient & pill attributes -->
+        <item name="harmonyScreenBackground">@drawable/bg_sunset_gradient</item>
+        <item name="harmonyMiniPlayerBackground">@drawable/bg_mini_player_pill</item>
+        <item name="harmonySearchBackground">@drawable/bg_search_pill</item>
+        <item name="harmonyControlBackground">@drawable/bg_control_pill</item>
+        <item name="harmonyTextPrimary">#241426</item>
+        <item name="harmonyTextSecondary">#5E3A54</item>
+        <item name="harmonyHintText">#7D5670</item>
     </style>
 
     <style name="Theme.Harmony" parent="Base.Theme.Harmony" />

@@ -1,12 +1,11 @@
 package com.example.harmony
 
+import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import android.content.Intent
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
@@ -22,13 +21,11 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val usernameInput = findViewById<EditText>(R.id.username)
-        val loginButton = findViewById<Button>(R.id.button)
-
-        loginButton.setOnClickListener {
-            val intent = Intent(this, LibraryActivity::class.java)
-            startActivity(intent)
-            finish() // Prevents the back button from returning to the login screen
-        }
+        Handler(Looper.getMainLooper()).postDelayed({
+            startActivity(Intent(this, LibraryActivity::class.java))
+            @Suppress("DEPRECATION")
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+            finish()
+        }, 1200L)
     }
 }

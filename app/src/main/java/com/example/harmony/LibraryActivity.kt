@@ -9,7 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.widget.Button
+import android.widget.ImageButton
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -17,6 +17,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -38,12 +40,16 @@ class LibraryActivity : AppCompatActivity() {
 
     private lateinit var miniSongTitle: TextView
     private lateinit var miniSongArtist: TextView
-    private lateinit var playPauseButton: Button
+    private lateinit var playPauseButton: ImageButton
+    private lateinit var shuffleButton: ImageButton
+    private lateinit var repeatButton: ImageButton
     private lateinit var searchInput: EditText
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            playPauseButton.text = if (isPlaying) "Pause" else "Play"
+            playPauseButton.setImageResource(
+                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+            )
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -53,6 +59,14 @@ class LibraryActivity : AppCompatActivity() {
                 currentIndex = index
                 updateMiniPlayerUI(activeQueue[index])
             }
+        }
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            shuffleButton.alpha = if (shuffleModeEnabled) 1.0f else 0.5f
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            updateRepeatButtonUI(repeatMode)
         }
     }
 
@@ -69,23 +83,47 @@ class LibraryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_library)
 
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.libraryMain)) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         miniSongTitle = findViewById(R.id.miniSongTitle)
         miniSongArtist = findViewById(R.id.miniSongArtist)
         playPauseButton = findViewById(R.id.playPauseButton)
-        val prevButton = findViewById<Button>(R.id.prevButton)
-        val nextButton = findViewById<Button>(R.id.nextButton)
-        val queueButton = findViewById<Button>(R.id.queueButton)
+        shuffleButton = findViewById(R.id.shuffleButton)
+        val prevButton = findViewById<ImageButton>(R.id.prevButton)
+        val nextButton = findViewById<ImageButton>(R.id.nextButton)
+        val queueButton = findViewById<ImageButton>(R.id.queueButton)
         searchInput = findViewById(R.id.searchInput)
+        repeatButton = findViewById(R.id.repeatButton)
+
+        repeatButton.setOnClickListener {
+            val controller = mediaController ?: return@setOnClickListener
+            val nextMode = when (controller.repeatMode) {
+                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                else -> Player.REPEAT_MODE_OFF
+            }
+            controller.repeatMode = nextMode
+            updateRepeatButtonUI(nextMode)
+
+            val label = when (nextMode) {
+                Player.REPEAT_MODE_ALL -> "Repeat queue"
+                Player.REPEAT_MODE_ONE -> "Repeat current song"
+                else -> "Repeat off"
+            }
+            Toast.makeText(this, label, Toast.LENGTH_SHORT).show()
+        }
 
         val recyclerView = findViewById<RecyclerView>(R.id.songsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         songAdapter = SongAdapter(displayedSongs) { selectedSong ->
             val isSearching = searchInput.text.toString().trim().isNotEmpty()
             if (isSearching) {
-                // Searched song: start a queue with ONLY this song
                 startQueue(listOf(selectedSong), startIndex = 0)
             } else {
-                // Browsing full list: start queue from this song and continue through the library
                 val indexInAll = allSongs.indexOfFirst { it.id == selectedSong.id }
                 if (indexInAll != -1) {
                     startQueue(allSongs, startIndex = indexInAll)
@@ -115,6 +153,24 @@ class LibraryActivity : AppCompatActivity() {
             }
         }
 
+        shuffleButton.setOnClickListener {
+            val controller = mediaController ?: return@setOnClickListener
+            val newShuffleState = !controller.shuffleModeEnabled
+            controller.shuffleModeEnabled = newShuffleState
+            shuffleButton.alpha = if (newShuffleState) 1.0f else 0.5f
+
+            if (newShuffleState && activeQueue.isEmpty() && allSongs.isNotEmpty()) {
+                val randomStart = allSongs.indices.random()
+                startQueue(allSongs, startIndex = randomStart)
+            }
+
+            Toast.makeText(
+                this,
+                if (newShuffleState) "Shuffle on" else "Shuffle off",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
         prevButton.setOnClickListener {
             mediaController?.seekToPrevious()
         }
@@ -139,11 +195,15 @@ class LibraryActivity : AppCompatActivity() {
             mediaController = controller
             controller?.addListener(playerListener)
             controller?.let {
-                playPauseButton.text = if (it.isPlaying) "Pause" else "Play"
+                playPauseButton.setImageResource(
+                    if (it.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+                )
+                shuffleButton.alpha = if (it.shuffleModeEnabled) 1.0f else 0.5f
                 if (it.currentMediaItemIndex in activeQueue.indices) {
                     currentIndex = it.currentMediaItemIndex
                     updateMiniPlayerUI(activeQueue[currentIndex])
                 }
+                updateRepeatButtonUI(it.repeatMode)
             }
         }, ContextCompat.getMainExecutor(this))
     }
@@ -211,6 +271,23 @@ class LibraryActivity : AppCompatActivity() {
             .setPositiveButton("Add Song") { _, _ -> showAddSongToQueueDialog() }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+    private fun updateRepeatButtonUI(repeatMode: Int) {
+        when (repeatMode) {
+            Player.REPEAT_MODE_OFF -> {
+                repeatButton.setImageResource(R.drawable.ic_repeat)
+                repeatButton.alpha = 0.5f
+            }
+            Player.REPEAT_MODE_ALL -> {
+                repeatButton.setImageResource(R.drawable.ic_repeat)
+                repeatButton.alpha = 1.0f
+            }
+            Player.REPEAT_MODE_ONE -> {
+                repeatButton.setImageResource(R.drawable.ic_repeat_one)
+                repeatButton.alpha = 1.0f
+            }
+        }
     }
 
     private fun showAddSongToQueueDialog() {

@@ -5,16 +5,17 @@
     android:id="@+id/libraryMain"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212">
+    android:background="?attr/harmonyScreenBackground">
 
     <TextView
         android:id="@+id/libraryHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="16dp"
         android:text="Your Library"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
+        android:textColor="?attr/harmonyTextPrimary"
+        android:textSize="26sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -24,12 +25,15 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="8dp"
-        android:hint="Search by song or artist..."
+        android:layout_marginTop="10dp"
+        android:background="?attr/harmonySearchBackground"
+        android:hint="Search songs or artists..."
         android:inputType="text"
         android:maxLines="1"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#9E9E9E"
+        android:paddingHorizontal="18dp"
+        android:paddingVertical="10dp"
+        android:textColor="?attr/harmonyTextPrimary"
+        android:textColorHint="?attr/harmonyHintText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/libraryHeader" />
@@ -38,7 +42,9 @@
         android:id="@+id/songsRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
         app:layout_constraintBottom_toTopOf="@id/miniPlayerBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -48,10 +54,13 @@
         android:id="@+id/miniPlayerBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#242424"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="?attr/harmonyMiniPlayerBackground"
+        android:elevation="6dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
+        android:paddingHorizontal="14dp"
         android:paddingVertical="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -72,7 +81,7 @@
                 android:maxLines="1"
                 android:text="Nothing playing"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -82,43 +91,81 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Tap a song to start"
-                android:textColor="#B3B3B3"
-                android:textSize="13sp" />
+                android:textColor="#D6CEE8"
+                android:textSize="12sp" />
         </LinearLayout>
 
-        <Button
+        <ImageButton
+            android:id="@+id/shuffleButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="4dp"
+            android:alpha="0.5"
+            android:background="@drawable/bg_control_pill"
+            android:contentDescription="Shuffle"
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_shuffle"
+            app:tint="#FFFFFF" />
+
+        <ImageButton
             android:id="@+id/prevButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="0dp"
-            android:paddingHorizontal="10dp"
-            android:text="Prev" />
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_control_pill"
+            android:contentDescription="Previous song"
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_prev"
+            app:tint="#FFFFFF" />
 
-        <Button
+        <ImageButton
             android:id="@+id/playPauseButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="6dp"
-            android:minWidth="0dp"
-            android:paddingHorizontal="12dp"
-            android:text="Play" />
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginHorizontal="4dp"
+            android:background="@drawable/bg_control_pill"
+            android:contentDescription="Play or pause"
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_play"
+            app:tint="#FFFFFF" />
 
-        <Button
+        <ImageButton
             android:id="@+id/nextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="0dp"
-            android:paddingHorizontal="10dp"
-            android:text="Next" />
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_control_pill"
+            android:contentDescription="Next song"
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_next"
+            app:tint="#FFFFFF" />
 
-        <Button
+        <ImageButton
+            android:id="@+id/repeatButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="4dp"
+            android:alpha="0.5"
+            android:background="@drawable/bg_control_pill"
+            android:contentDescription="Repeat mode"
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_repeat"
+            app:tint="#FFFFFF" />
+
+        <ImageButton
             android:id="@+id/queueButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:minWidth="0dp"
-            android:paddingHorizontal="10dp"
-            android:text="Queue" />
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_control_pill"
+            android:contentDescription="View queue"
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_queue"
+            app:tint="#FFFFFF" />
 
     </LinearLayout>
 

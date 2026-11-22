@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="harmonyScreenBackground" format="reference" />
+    <attr name="harmonyMiniPlayerBackground" format="reference" />
+    <attr name="harmonySearchBackground" format="reference" />
+    <attr name="harmonyControlBackground" format="reference" />
+    <attr name="harmonyTextPrimary" format="color" />
+    <attr name="harmonyTextSecondary" format="color" />
+    <attr name="harmonyHintText" format="color" />
+</resources>

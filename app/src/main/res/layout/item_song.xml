@@ -3,11 +3,13 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="5dp"
+    android:background="@drawable/bg_song_pill"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?attr/selectableItemBackground"
     android:orientation="vertical"
-    android:paddingHorizontal="16dp"
+    android:paddingHorizontal="20dp"
     android:paddingVertical="12dp">
 
     <TextView
@@ -16,8 +18,8 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textColor="?attr/harmonyTextPrimary"
+        android:textSize="15sp"
         android:textStyle="bold" />
 
     <TextView
@@ -27,7 +29,7 @@
         android:layout_marginTop="2dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="#B3B3B3"
-        android:textSize="14sp" />
+        android:textColor="?attr/harmonyTextSecondary"
+        android:textSize="13sp" />
 
 </LinearLayout>
