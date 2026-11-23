@@ -32,6 +32,8 @@
             android:name=".LibraryActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".MostListenedActivity" />
+        <activity android:name=".WrappedActivity" />
         <service
             android:name=".PlaybackService"
             android:exported="true"

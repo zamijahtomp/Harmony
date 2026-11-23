@@ -3,6 +3,7 @@ package com.example.harmony
 import android.Manifest
 import android.content.ComponentName
 import android.content.ContentUris
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.ImageButton
+import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -33,10 +35,12 @@ class LibraryActivity : AppCompatActivity() {
     private val displayedSongs = mutableListOf<Song>()
     private val activeQueue = mutableListOf<Song>()
     private lateinit var songAdapter: SongAdapter
+    private lateinit var listeningTracker: ListeningTracker
 
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
     private var currentIndex = -1
+    private var countedCurrentItem = false
 
     private lateinit var miniSongTitle: TextView
     private lateinit var miniSongArtist: TextView
@@ -50,14 +54,21 @@ class LibraryActivity : AppCompatActivity() {
             playPauseButton.setImageResource(
                 if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
             )
+            if (isPlaying) {
+                recordCurrentSongPlayIfNeeded()
+            }
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             val controller = mediaController ?: return
             val index = controller.currentMediaItemIndex
+            countedCurrentItem = false
             if (index in activeQueue.indices) {
                 currentIndex = index
                 updateMiniPlayerUI(activeQueue[index])
+                if (controller.isPlaying) {
+                    recordCurrentSongPlayIfNeeded()
+                }
             }
         }
 
@@ -79,9 +90,26 @@ class LibraryActivity : AppCompatActivity() {
             }
         }
 
+    private val mostListenedLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                val ids = result.data!!.getLongArrayExtra(MostListenedActivity.EXTRA_PLAYLIST_SONG_IDS)
+                    ?: return@registerForActivityResult
+                val startIndex = result.data!!.getIntExtra(MostListenedActivity.EXTRA_START_INDEX, 0)
+                val songById = allSongs.associateBy { it.id }
+                val resolvedSongs = ids.asSequence().mapNotNull { songById[it] }.toList()
+                if (resolvedSongs.isNotEmpty()) {
+                    val safeIndex = startIndex.coerceIn(0, resolvedSongs.lastIndex)
+                    startQueue(resolvedSongs, safeIndex)
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_library)
+
+        listeningTracker = ListeningTracker(this)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.libraryMain)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -141,6 +169,16 @@ class LibraryActivity : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+
+        val mostListenedButton = findViewById<Button>(R.id.mostListenedButton)
+        mostListenedButton.setOnClickListener {
+            mostListenedLauncher.launch(Intent(this, MostListenedActivity::class.java))
+        }
+
+        val wrapUpButton = findViewById<Button>(R.id.wrapUpButton)
+        wrapUpButton.setOnClickListener {
+            mostListenedLauncher.launch(Intent(this, WrappedActivity::class.java))
+        }
 
         playPauseButton.setOnClickListener {
             val controller = mediaController ?: return@setOnClickListener
@@ -215,11 +253,20 @@ class LibraryActivity : AppCompatActivity() {
         mediaController = null
     }
 
+    private fun recordCurrentSongPlayIfNeeded() {
+        if (countedCurrentItem) return
+        if (currentIndex in activeQueue.indices) {
+            listeningTracker.recordPlay(activeQueue[currentIndex])
+            countedCurrentItem = true
+        }
+    }
+
     private fun startQueue(songs: List<Song>, startIndex: Int) {
         if (songs.isEmpty() || startIndex !in songs.indices) return
         activeQueue.clear()
         activeQueue.addAll(songs)
         currentIndex = startIndex
+        countedCurrentItem = false
 
         val song = activeQueue[startIndex]
         updateMiniPlayerUI(song)
@@ -258,6 +305,7 @@ class LibraryActivity : AppCompatActivity() {
         if (labels.isNotEmpty()) {
             builder.setItems(labels) { _, which ->
                 currentIndex = which
+                countedCurrentItem = false
                 val selected = activeQueue[which]
                 updateMiniPlayerUI(selected)
                 mediaController?.seekTo(which, 0L)

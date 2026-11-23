@@ -2,4 +2,19 @@
     <string name="app_name">Harmony</string>
     <string name="log_in_to_continue">Log in to continue</string>
     <string name="email_or_username">Email or username</string>
+    <string name="your_library">Your Library</string>
+    <string name="most_listened">Most Listened</string>
+    <string name="wrap_up">Year Wrap-Up</string>
+    <string name="search_songs_or_artists">Search songs or artists...</string>
+    <string name="nothing_playing">Nothing playing</string>
+    <string name="tap_a_song">Tap a song to start</string>
+    <string name="play">Play or Pause</string>
+    <string name="prev">Previous song</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="next">Next</string>
+    <string name="repeat">Repeat mode</string>
+    <string name="queue">View queue</string>
+    <string name="play_top_queue">Play Top Queue</string>
+    <string name="back">Back</string>
+    <string name="no_plays_logged_yet">No plays logged yet — play a few songs in Your Library and check back!</string>
 </resources>

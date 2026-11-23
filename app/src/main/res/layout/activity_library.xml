@@ -9,16 +9,53 @@
 
     <TextView
         android:id="@+id/libraryHeader"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="16dp"
-        android:text="Your Library"
+        android:layout_marginEnd="12dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="@string/your_library"
         android:textColor="?attr/harmonyTextPrimary"
         android:textSize="26sp"
         android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/mostListenedButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/mostListenedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="34dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_control_pill"
+        android:minWidth="0dp"
+        android:paddingHorizontal="12dp"
+        android:text="@string/most_listened"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        app:backgroundTint="@null"
+        app:layout_constraintBottom_toBottomOf="@id/libraryHeader"
+        app:layout_constraintEnd_toStartOf="@id/wrapUpButton"
+        app:layout_constraintTop_toTopOf="@id/libraryHeader" />
+
+    <Button
+        android:id="@+id/wrapUpButton"
+        android:layout_width="wrap_content"
+        android:layout_height="34dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_control_pill"
+        android:minWidth="0dp"
+        android:paddingHorizontal="12dp"
+        android:text="@string/wrap_up"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        app:backgroundTint="@null"
+        app:layout_constraintBottom_toBottomOf="@id/libraryHeader"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/libraryHeader" />
+
 
     <EditText
         android:id="@+id/searchInput"
@@ -27,7 +64,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="10dp"
         android:background="?attr/harmonySearchBackground"
-        android:hint="Search songs or artists..."
+        android:hint="@string/search_songs_or_artists"
         android:inputType="text"
         android:maxLines="1"
         android:paddingHorizontal="18dp"
@@ -36,7 +73,8 @@
         android:textColorHint="?attr/harmonyHintText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/libraryHeader" />
+        app:layout_constraintTop_toBottomOf="@id/libraryHeader"
+        android:importantForAutofill="no"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/songsRecyclerView"
@@ -71,7 +109,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:paddingEnd="8dp">
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp">
 
             <TextView
                 android:id="@+id/miniSongTitle"
@@ -79,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="Nothing playing"
+                android:text="@string/nothing_playing"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -90,7 +129,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="Tap a song to start"
+                android:text="@string/tap_a_song"
                 android:textColor="#D6CEE8"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -102,7 +141,7 @@
             android:layout_marginEnd="4dp"
             android:alpha="0.5"
             android:background="@drawable/bg_control_pill"
-            android:contentDescription="Shuffle"
+            android:contentDescription="@string/shuffle"
             android:padding="7dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_shuffle"
@@ -113,7 +152,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:background="@drawable/bg_control_pill"
-            android:contentDescription="Previous song"
+            android:contentDescription="@string/prev"
             android:padding="7dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_prev"
@@ -125,7 +164,7 @@
             android:layout_height="32dp"
             android:layout_marginHorizontal="4dp"
             android:background="@drawable/bg_control_pill"
-            android:contentDescription="Play or pause"
+            android:contentDescription="@string/play"
             android:padding="7dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_play"
@@ -136,7 +175,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:background="@drawable/bg_control_pill"
-            android:contentDescription="Next song"
+            android:contentDescription="@string/next"
             android:padding="7dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_next"
@@ -149,7 +188,7 @@
             android:layout_marginStart="4dp"
             android:alpha="0.5"
             android:background="@drawable/bg_control_pill"
-            android:contentDescription="Repeat mode"
+            android:contentDescription="@string/repeat"
             android:padding="7dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_repeat"
@@ -161,7 +200,7 @@
             android:layout_height="32dp"
             android:layout_marginStart="4dp"
             android:background="@drawable/bg_control_pill"
-            android:contentDescription="View queue"
+            android:contentDescription="@string/queue"
             android:padding="7dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_queue"
