@@ -7,4 +7,5 @@
     <attr name="harmonyTextPrimary" format="color" />
     <attr name="harmonyTextSecondary" format="color" />
     <attr name="harmonyHintText" format="color" />
+    <attr name="harmonyMiniControlTint" format="reference" />
 </resources>

@@ -2,7 +2,6 @@
     <string name="app_name">Harmony</string>
     <string name="log_in_to_continue">Log in to continue</string>
     <string name="email_or_username">Email or username</string>
-    <string name="your_library">Your Library</string>
     <string name="most_listened">Most Listened</string>
     <string name="wrap_up">Year Wrap-Up</string>
     <string name="search_songs_or_artists">Search songs or artists...</string>
@@ -17,4 +16,5 @@
     <string name="play_top_queue">Play Top Queue</string>
     <string name="back">Back</string>
     <string name="no_plays_logged_yet">No plays logged yet — play a few songs in Your Library and check back!</string>
+    <string name="sort">Sort</string>
 </resources>

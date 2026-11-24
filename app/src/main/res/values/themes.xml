@@ -11,9 +11,10 @@
         <item name="harmonyMiniPlayerBackground">@drawable/bg_mini_player_pill</item>
         <item name="harmonySearchBackground">@drawable/bg_search_pill</item>
         <item name="harmonyControlBackground">@drawable/bg_control_pill</item>
-        <item name="harmonyTextPrimary">#241426</item>
-        <item name="harmonyTextSecondary">#5E3A54</item>
-        <item name="harmonyHintText">#7D5670</item>
+        <item name="harmonyTextPrimary">#F8778B</item>
+        <item name="harmonyTextSecondary">#F8778B</item>
+        <item name="harmonyHintText">#F8778B</item>
+        <item name="harmonyMiniControlTint">@drawable/bg_control_pill</item>
     </style>
 
     <style name="Theme.Harmony" parent="Base.Theme.Harmony" />
